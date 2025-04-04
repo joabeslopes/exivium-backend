@@ -1,0 +1,19 @@
+# Ignora os plugins instalados mas mantem a pasta
+app/plugins/*
+!app/plugins/__init__.py
+
+# Arquivos de ambiente
+.env
+.venv
+
+# Arquivos de cache
+__pycache__
+*.py[cod]
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de IDE
+.vscode/
+.pydevproject

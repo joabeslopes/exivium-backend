@@ -1,5 +1,6 @@
 psycopg==3.2.6
 fastapi==0.115.12
-uvicorn
-opencv-python
-python-jose[cryptography]
+uvicorn==0.34.1 
+opencv-python==4.11.0.86
+python-jose[cryptography]==3.4.0
+websockets==15.0.1

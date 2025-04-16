@@ -18,7 +18,7 @@ valid_tokens = {
                 }
 
 camera_channels = {
-    1: "rtsp://localhost:554/live"
+    1: "rtsp://localhost:8554/mystream"
 }
 
 active_cameras = {}

@@ -1,10 +1,8 @@
 import cv2
 import asyncio
 import threading
-import time
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import av
 
 app = FastAPI()
@@ -110,8 +108,7 @@ async def video_stream(websocket: WebSocket, token: str, channel: int):
 @app.websocket("/ws/results")
 async def result_receiver(websocket: WebSocket, token: str):
     if token not in valid_tokens:
-        await websocket.close()
-        raise HTTPException(status_code=401, detail="Token inválido")
+        raise WebSocketDisconnect(code=1008, reason="Token inválido")
 
     await websocket.accept()
     try:

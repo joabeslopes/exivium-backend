@@ -10,7 +10,7 @@ app = FastAPI()
 JPEG_QUALITY = 60
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
-FPS = 60
+FPS = 30
 
 valid_tokens = {
                 "meu_token": "usuario1", 

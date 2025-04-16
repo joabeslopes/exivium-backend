@@ -3,7 +3,6 @@ import asyncio
 import threading
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-import av
 
 app = FastAPI()
 
@@ -33,48 +32,27 @@ class Camera:
             print("[ERRO CAMERA] Canal inválido.")
             return
 
-        try:
-            self.container = av.open(self.url, timeout=5)  # timeout em segundos
-        except Exception as e:
-            print(f"[ERRO CAMERA] Falha ao abrir a câmera: {e}")
-            return
-
-        self.stream = self.container.streams.video[0]
-        self.stream.thread_type = "AUTO"
-
-        self.running = True
-        self.thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self.cap = cv2.VideoCapture(self.url)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
+        self.cap.set(cv2.CAP_PROP_FPS, FPS)
+        self.thread = threading.Thread(target=self._capture, daemon=True)
         self.thread.start()
 
-    def _capture_loop(self):
-        try:
-            for frame in self.container.decode(video=0):
-                if not self.running:
-                    break
-
-                # Converte para array BGR (OpenCV)
-                img = frame.to_ndarray(format="bgr24")
-
-                # Redimensiona (opcional)
-                img = cv2.resize(img, (FRAME_WIDTH, FRAME_HEIGHT))
-
-                success, buffer = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
-                if success:
-                    self.frame = buffer.tobytes()
-
-        except Exception as e:
-            print(f"[ERRO CAPTURA] {e}")
-            self.running = False
+    def _capture(self):
+        self.running = True
+        while self.running:
+            ret, frame = self.cap.read()
+            if ret:
+                _, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+                self.frame = buffer.tobytes()
 
     def get_frame(self):
         return self.frame
 
     def stop(self):
         self.running = False
-        try:
-            self.container.close()
-        except Exception:
-            pass
+        self.cap.release()
 
 
 for channel in camera_channels:

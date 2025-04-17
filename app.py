@@ -5,8 +5,6 @@ import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import atexit
 
-app = FastAPI()
-
 JPEG_QUALITY = 70
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
@@ -59,11 +57,13 @@ class Camera:
         atexit.register(self.stop)
 
     def _capture(self):
-        while self.running:
+        while self.cap.isOpened():
             ret, frame = self.cap.read()
             if ret:
-                _, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
-                self.frame = buffer.tobytes()
+                encoded, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+                if encoded:
+                    self.frame = buffer.tobytes()
+        self.running = False
 
     def get_frame(self):
         return self.frame
@@ -80,6 +80,7 @@ def run_cameras():
     for channel in camera_channels:
         active_cameras[channel] = Camera(channel)
 
+app = FastAPI()
 
 @app.websocket("/ws/video/{channel}")
 async def video_stream(websocket: WebSocket, token: str, channel: int):

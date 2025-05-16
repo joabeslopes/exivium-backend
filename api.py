@@ -1,13 +1,9 @@
-import cv2
 import asyncio
-import threading
-import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-import atexit
+from classes.camera import Camera
+from functions.plugin_manager import activate_plugin, run_plugin
 
-JPEG_QUALITY = 70
-FRAME_WIDTH = 640
-FRAME_HEIGHT = 480
+#TODO variavel de ambiente
 FPS = 30
 active_cameras = {}
 
@@ -30,55 +26,12 @@ def validate_token(token: str):
                     }
     return token in valid_tokens
 
-
-class Camera:
-    def __init__(self, channel: int):
-        self.frame = None
-        self.running = False
-        self.channel = channel
-
-        self.url = get_channel(channel)
-        if self.url is None:
-            log(f"[ERRO] Canal {channel} nao existe")
-            return
-
-        self.cap = cv2.VideoCapture(self.url)
-
-        self.running = self.cap.isOpened()
-        if not self.running:
-            log(f"[ERRO] Camera {self.url} invalida")
-            return
-
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
-        self.cap.set(cv2.CAP_PROP_FPS, FPS)
-        self.thread = threading.Thread(target=self._capture, daemon=True)
-        self.thread.start()
-        atexit.register(self.stop)
-
-    def _capture(self):
-        while self.cap.isOpened():
-            ret, frame = self.cap.read()
-            if ret:
-                encoded, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
-                if encoded:
-                    self.frame = buffer.tobytes()
-        self.running = False
-
-    def get_frame(self):
-        return self.frame
-
-    def stop(self):
-        log(f"Parando camera {self.channel}")
-        self.running = False
-        self.cap.release()
-
-
 def run_cameras():
     log('Ligando cameras')
     camera_channels = get_channel()
     for channel in camera_channels:
-        active_cameras[channel] = Camera(channel)
+        url = get_channel(channel)
+        active_cameras[channel] = Camera(channel, url)
 
 app = FastAPI()
 
@@ -92,20 +45,20 @@ async def video_stream(websocket: WebSocket, token: str, channel: int):
         log(f"[ERRO] Camera {channel} nao encontrada")
         raise WebSocketDisconnect(code=1008, reason="Camera nao encontrada")
 
-    await websocket.accept()
-    log("Cliente conectado")
-
     camera = active_cameras[channel]
 
     if not camera.running:
         log(f"Camera {channel} nao está funcionando")
         raise WebSocketDisconnect(code=1008, reason="Camera nao está funcionando")
 
+    await websocket.accept()
+    log("Cliente conectado")
+
     try:
         while camera.running:
-            frame = camera.get_frame()
-            if frame:
-                await websocket.send_bytes(frame)
+            image = camera.get_image()
+            if image:
+                await websocket.send_bytes(image)
             await asyncio.sleep(1 / FPS)
     except WebSocketDisconnect:
         log("Cliente desconectado")
@@ -125,7 +78,7 @@ async def result_receiver(websocket: WebSocket, token: str):
         log("Cliente desconectado")
 
 
-if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000)
-elif __name__ == "app":
+if __name__ == 'api':
     run_cameras()
+    activate_plugin('plugins/exemplo')
+    run_plugin('plugins/exemplo', camera_id=1)

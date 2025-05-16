@@ -1,6 +1,6 @@
 # Ignora os plugins instalados mas mantem a pasta
-app/plugins/*
-!app/plugins/__init__.py
+plugins/*
+!plugins/__init__.py
 
 # Arquivos de ambiente
 .env

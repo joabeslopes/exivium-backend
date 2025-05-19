@@ -12,13 +12,11 @@ FPS = 30
 class Camera:
     def __init__(self, channel: int, url: str):
         self.frame = None
-        self.running = False
         self.channel = channel
         self.url = url
         self.cap = cv2.VideoCapture(self.url)
 
-        self.running = self.cap.isOpened()
-        if not self.running:
+        if not self.cap.isOpened():
             print(f"[ERRO] Camera {self.url} invalida")
             return
 
@@ -43,8 +41,17 @@ class Camera:
         self.thread.start()
         atexit.register(self.stop)
 
+    def isRunning(self):
+        return self.cap.isOpened()
+
     def _capture(self):
-        while self.cap.isOpened():
+        try:
+            self.writer.start()
+        except Exception as e:
+            self.stop()
+            return
+
+        while self.isRunning():
             readed, frame = self.cap.read()
             if readed:
                 match self.size_offset:
@@ -55,20 +62,26 @@ class Camera:
 
                 self.writer.write(frame)
                 self.frame = frame
-        self.running = False
 
     def get_frame(self):
+        if not self.isRunning():
+            return None
         return self.frame
 
     def get_image(self):
+        if not self.isRunning():
+            return None
+
         image = None
         frame = self.get_frame()
-        encoded, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
-        if encoded:
-            image = buffer.tobytes()
+        try:
+            encoded, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+            if encoded:
+                image = buffer.tobytes()
+        except cv2.error as e:
+            print(f"Encode error: {e}")
         return image
 
     def stop(self):
         print(f"Parando camera {self.channel}")
-        self.running = False
         self.cap.release()

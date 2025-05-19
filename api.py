@@ -47,7 +47,7 @@ async def video_stream(websocket: WebSocket, token: str, channel: int):
 
     camera = active_cameras[channel]
 
-    if not camera.running:
+    if not camera.isRunning():
         log(f"Camera {channel} nao está funcionando")
         raise WebSocketDisconnect(code=1008, reason="Camera nao está funcionando")
 
@@ -55,7 +55,7 @@ async def video_stream(websocket: WebSocket, token: str, channel: int):
     log("Cliente conectado")
 
     try:
-        while camera.running:
+        while camera.isRunning():
             image = camera.get_image()
             if image:
                 await websocket.send_bytes(image)

@@ -5,14 +5,17 @@ import sys
 
 def main(camera_id):
     reader = FrameReader(camera_id)
-    print('RODANDO PLUGIN EXEMPLO')
+    print(f'Rodando plugin exemplo na camera {camera_id}')
     try:
-        while True:
+        reader.start()
+        while reader.isRunning():
             frame = reader.read()
             cv2.imshow("Plugin Frame", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             time.sleep(0.01)
+    except Exception as e:
+        print('Erro ao ler frames')
     finally:
         reader.close()
         cv2.destroyAllWindows()

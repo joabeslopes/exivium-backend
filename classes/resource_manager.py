@@ -1,5 +1,6 @@
 from classes.camera import Camera
 from classes.plugin import Plugin
+from functions.channels import get_channel
 import atexit
 
 class ResourceManager:
@@ -8,16 +9,8 @@ class ResourceManager:
         self.plugins: dict[tuple, Plugin] = {}
         atexit.register(self.stop_all)
 
-    def get_channel(self, channel: int = None):
-        all_channels = {
-            1: "rtsp://localhost:8554/mystream"
-        }
-        if channel is None:
-            return all_channels
-        return all_channels.get(channel)
-
     def start_camera(self, channel: int):
-        url = self.get_channel(channel)
+        url = get_channel(channel)
         if url is None:
             print(f"Canal {channel} inválido")
             return

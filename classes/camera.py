@@ -1,7 +1,6 @@
 import cv2
 import threading
 from classes.shared_frame_io import FrameWriter
-import atexit
 
 #TODO variavel de ambiente
 JPEG_QUALITY = 70
@@ -39,7 +38,6 @@ class Camera:
 
         self.thread = threading.Thread(target=self._capture, daemon=True)
         self.thread.start()
-        atexit.register(self.stop)
 
     def isRunning(self):
         return self.cap.isOpened()
@@ -85,3 +83,5 @@ class Camera:
     def stop(self):
         print(f"Parando camera {self.channel}")
         self.cap.release()
+        self.thread.join()
+        self.writer.close()

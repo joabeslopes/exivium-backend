@@ -1,7 +1,6 @@
 import numpy as np
 from multiprocessing import shared_memory
 import threading
-import atexit
 
 #TODO variavel de ambiente
 FRAME_WIDTH = 640
@@ -35,8 +34,6 @@ class MemoryConnector:
 
         self.array = np.ndarray(self.shape, dtype=self.dtype, buffer=self.shm.buf)
         self.lock = threading.Lock()
-
-        atexit.register(self.close)
 
         return self.running
 

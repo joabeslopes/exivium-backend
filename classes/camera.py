@@ -36,7 +36,7 @@ class Camera:
 
         self.writer = FrameWriter(channel)
 
-        self.thread = threading.Thread(target=self._capture, daemon=True)
+        self.thread = threading.Thread(target=self._capture)
         self.thread.start()
 
     def isRunning(self):

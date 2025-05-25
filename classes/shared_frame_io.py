@@ -8,8 +8,9 @@ FRAME_HEIGHT = 360
 JPEG_QUALITY = 70
 
 class MemoryConnector:
-    def __init__(self, camera_id: int):
-        self.name = f"camera_{camera_id}"
+    def __init__(self, channel: int):
+        self.channel = channel
+        self.name = f"camera_{channel}"
         self.shape = (FRAME_HEIGHT, FRAME_WIDTH, 3)
         self.dtype = np.uint8
         self.frame_size = int( np.prod(self.shape) * np.dtype(self.dtype).itemsize )

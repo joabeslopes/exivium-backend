@@ -1,6 +1,15 @@
-def validate_token(token: str):
-    valid_tokens = {
-                    "meu_token": "usuario1", 
-                    "meu_token_plugin2": "plugin2",
-                    }
-    return token in valid_tokens
+async def get_token_info(token: str):
+    tokens = {
+        "meu_token": {  
+            "name": "usuario1",
+            "role": "user"
+        },
+        "meu_token_exemplo": { 
+            "name": "exemplo",
+            "role": "plugin"
+        }
+    }
+    if token in tokens:
+        return tokens[token]
+    else:
+        return False

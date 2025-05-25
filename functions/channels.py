@@ -1,6 +1,7 @@
 def get_channel(channel: int = None):
     all_channels = {
-        1: "rtsp://localhost:8554/mystream"
+        1: "rtsp://localhost:8554/mystream",
+        2: "rtsp://localhost:8554/mystream"
     }
     if channel is None:
         return all_channels

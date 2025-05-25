@@ -7,6 +7,7 @@ class ResourceManager:
     def __init__(self):
         self.cameras: dict[int, Camera] = {}
         self.plugins: dict[tuple, Plugin] = {}
+        self.results: dict[tuple, bytes] = {}
         atexit.register(self.stop_all)
 
     def start_camera(self, channel: int):
@@ -25,12 +26,12 @@ class ResourceManager:
             camera.stop()
             print(f"Câmera {channel} parada")
 
-    def start_plugin(self, plugin_name: str, channel: int):
+    def start_plugin(self, plugin_name: str, channel: int, token: str):
         key = (plugin_name, channel)
         if key in self.plugins:
             print(f"Plugin {key} já está em execução")
             return
-        plugin = Plugin(plugin_name, channel)
+        plugin = Plugin(plugin_name, channel, token)
         self.plugins[key] = plugin
         print(f"Plugin {key} iniciado")
 
@@ -41,6 +42,12 @@ class ResourceManager:
             plugin.stop()
             print(f"Plugin {key} parado")
 
+    def set_result(self, key: tuple, image: bytes):
+        self.results[key] = image
+
+    def get_result(self, key: tuple) -> bytes:
+        return self.results[key]
+
     def stop_all(self):
         for cam_id in list(self.cameras.keys()):
             self.stop_camera(cam_id)
@@ -49,3 +56,7 @@ class ResourceManager:
             channel = key[1]
             self.stop_plugin(plugin_name, channel)
         print("Todos os recursos foram encerrados")
+
+    def get_all_cameras(self) -> list:
+        allCameras = list(self.cameras.keys())
+        return allCameras

@@ -8,9 +8,10 @@ import signal
 
 
 class Plugin:
-    def __init__(self, plugin_name: str, channel: int):
+    def __init__(self, plugin_name: str, channel: int, token: str):
         self.plugin_name = plugin_name
         self.channel = str(channel)
+        self.token = token
         self.path = f'plugins/{plugin_name}'
         self.venv_dir = get_venv_dir(self.path)
         self.venv_python = get_venv_python(self.venv_dir)
@@ -25,7 +26,7 @@ class Plugin:
         print(f"[INFO] Iniciando plugin {self.path} com channel={self.channel}")
         
         return subprocess.Popen(
-            [venv_python, plugin_main, self.channel],
+            [venv_python, plugin_main, self.plugin_name ,self.channel, self.token],
             cwd=os.path.join(self.path)
         )
 
